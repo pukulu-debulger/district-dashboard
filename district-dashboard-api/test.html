@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>District Dashboard — File Upload Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+    }
+    h2 { color: #1a3a5c; }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #333;
+    }
+    select, input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #1a3a5c;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background: #2a5298; }
+    #response {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    .success { background: #e6f4ea; color: #1e7e34; border: 1px solid #b7dfbe; }
+    .error   { background: #fdecea; color: #c0392b; border: 1px solid #f5c6cb; }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h2>District Dashboard — Upload Test</h2>
+  <div class="card">
+    <label for="department">Select Department</label>
+    <select id="department">
+      <option value="education">Education</option>
+      <option value="health">Health</option>
+      <option value="welfare">Social Welfare</option>
+      <option value="disaster">Disaster Management</option>
+    </select>
+
+    <label for="fileInput">Choose File (CSV, Excel, or JSON)</label>
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json">
+
+    <button onclick="uploadFile()">Upload File</button>
+
+    <div id="response"></div>
+  </div>
+
+  <script>
+    async function uploadFile() {
+      const department = document.getElementById('department').value
+      const fileInput  = document.getElementById('fileInput')
+      const responseDiv = document.getElementById('response')
+
+      if (!fileInput.files[0]) {
+        responseDiv.className = 'error'
+        responseDiv.style.display = 'block'
+        responseDiv.innerHTML = '<pre>Please select a file first.</pre>'
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', fileInput.files[0])
+
+      responseDiv.style.display = 'block'
+      responseDiv.className = ''
+      responseDiv.innerHTML = '<pre>Uploading...</pre>'
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/upload/${department}`, {
+          method: 'POST',
+          body: formData
+        })
+        const data = await res.json()
+
+        if (res.ok) {
+          responseDiv.className = 'success'
+          responseDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+        } else {
+          responseDiv.className = 'error'
+          responseDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+        }
+      } catch (err) {
+        responseDiv.className = 'error'
+        responseDiv.innerHTML = '<pre>Could not connect to server. Is it running?\n\n' + err.message + '</pre>'
+      }
+    }
+  </script>
+</body>
+</html>
